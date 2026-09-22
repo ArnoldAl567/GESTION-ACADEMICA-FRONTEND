@@ -1,0 +1,7 @@
+:host { display: block; min-height: 100vh; }
+
+.admin-startup { min-height: 100vh; display: grid; place-content: center; justify-items: center; gap: 12px; background: #f4f7fb; color: #12213d; text-align: center; }
+.admin-startup > strong { font-size: 22px; }
+.admin-startup p { margin: 0; color: #6b7c99; }
+.startup-spinner { width: 30px; height: 30px; margin-top: 8px; border: 3px solid #dbe7ff; border-top-color: #246bfd; border-radius: 50%; animation: startup-spin .75s linear infinite; }
+@keyframes startup-spin { to { transform: rotate(360deg); } }
