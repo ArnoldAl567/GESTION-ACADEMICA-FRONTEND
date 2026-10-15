@@ -1,0 +1,10 @@
+<header class="topbar">
+  <button class="mobile-menu" aria-label="Abrir menú" (click)="abrirMenu.emit()"><span class="material-symbols-rounded">menu</span></button>
+  <div class="breadcrumb"><span>I.E. N° 80404</span><i class="material-symbols-rounded">chevron_right</i><strong>{{ titulo }}</strong></div>
+  <div class="topbar-actions">
+    <span class="active-year" [attr.aria-label]="'Año académico activo: '+anio" title="Año académico activo">{{ anio }}</span>
+    <button class="theme-button" type="button" [attr.aria-label]="temaOscuro ? 'Cambiar a tema claro' : 'Cambiar a tema oscuro'" [attr.aria-pressed]="temaOscuro" [attr.title]="temaOscuro ? 'Tema claro' : 'Tema oscuro'" (click)="alternarTema.emit()"><span class="material-symbols-rounded">{{ temaOscuro ? 'light_mode' : 'dark_mode' }}</span></button>
+    <button class="notification-button" aria-label="Ver comunicados" (click)="abrirComunicados.emit()"><span class="material-symbols-rounded">notifications</span>@if (noLeidos) {<i></i>}</button>
+    <button class="top-profile" (click)="abrirConfiguracion.emit()"><span class="avatar">{{ iniciales(usuario) }}</span><span><strong>{{ usuario }}</strong><small>{{ rol }}</small></span><i class="material-symbols-rounded">expand_more</i></button>
+  </div>
+</header>

@@ -1,0 +1,42 @@
+<aside class="sidebar" [class.mobile-open]="abiertaEnMovil">
+  <div class="sidebar-brand"><img class="institution-logo sidebar-logo" src="/escudo-ie-80404.png" alt="Escudo de {{ institucion }}"><div class="sidebar-brand-copy"><strong>{{ institucion }}</strong><small>Sistema de gestión académica</small></div></div>
+  <button class="collapse-button" [attr.aria-label]="contraida ? 'Expandir menú' : 'Contraer menú'" (click)="alternar.emit()"><span class="material-symbols-rounded">{{ contraida ? 'chevron_right' : 'chevron_left' }}</span></button>
+  <nav aria-label="Navegación principal">
+    <span class="nav-title">Navegación</span>
+    <button type="button" class="nav-item nav-home" [class.active]="moduloActivo === inicio.id" [attr.aria-current]="moduloActivo === inicio.id ? 'page' : null" [attr.title]="inicio.label" [disabled]="ocupada" (click)="cambiarModulo.emit(inicio.id)">
+      <span class="material-symbols-rounded">{{ inicio.icon }}</span><span class="nav-label">{{ inicio.label }}</span>
+    </button>
+    @for (grupo of grupos; track grupo.id) {
+      <div class="nav-group">
+        <button type="button" class="nav-item nav-group-button" [class.active-group]="grupoContieneModulo(grupo, moduloActivo)" [attr.aria-expanded]="grupoAbierto === grupo.id && !contraida" [attr.aria-controls]="'grupo-' + grupo.id" [attr.title]="grupo.label" (click)="alternarGrupo(grupo.id)">
+          <span class="material-symbols-rounded">{{ grupo.icon }}</span><span class="nav-label">{{ grupo.label }}</span>
+          @if (grupo.id === 'gestion' && pendientes) {<span class="nav-badge">{{ pendientes }}</span>}
+          @if (grupo.id === 'comunicacion' && noLeidos) {<span class="nav-badge">{{ noLeidos }}</span>}
+          <span class="material-symbols-rounded nav-group-chevron" aria-hidden="true">{{ grupoAbierto === grupo.id && !contraida ? 'expand_less' : 'expand_more' }}</span>
+        </button>
+        @if (grupoAbierto === grupo.id && !contraida) {
+          <div class="nav-group-content" [id]="'grupo-' + grupo.id">
+            @for (seccion of grupo.secciones; track $index) {
+              @if (seccion.label) {<span class="nav-section-title">{{ seccion.label }}</span>}
+              @for (elemento of seccion.elementos; track elemento.id) {
+                <button type="button" class="nav-item nav-subitem" [class.active]="moduloActivo === elemento.id" [attr.aria-current]="moduloActivo === elemento.id ? 'page' : null" [attr.title]="elemento.label" [disabled]="ocupada" (click)="cambiarModulo.emit(elemento.id)">
+                  <span class="material-symbols-rounded">{{ elemento.icon }}</span><span class="nav-label">{{ elemento.label }}</span>
+                  @if (elemento.id === 'enrollment' && pendientes) {<span class="nav-badge">{{ pendientes }}</span>}
+                  @if (elemento.id === 'communications' && noLeidos) {<span class="nav-badge">{{ noLeidos }}</span>}
+                </button>
+              }
+            }
+            @if (grupo.id === 'administracion') {
+              <button type="button" class="nav-item nav-subitem" title="Configuración" (click)="abrirConfiguracion.emit()"><span class="material-symbols-rounded">settings</span><span class="nav-label">Configuración</span></button>
+            }
+          </div>
+        }
+      </div>
+    }
+  </nav>
+  <div class="sidebar-footer">
+    <div class="sidebar-profile"><span class="avatar">{{ iniciales(usuario) }}</span><div class="profile-copy"><strong>{{ usuario }}</strong><small>{{ rol }}</small></div></div>
+    @if (mostrarMiPerfil) {<button class="footer-link" type="button" [disabled]="ocupada" (click)="abrirPerfil.emit()"><span class="material-symbols-rounded">account_circle</span><span>Mi perfil</span></button>}
+    <button class="footer-link logout" (click)="cerrarSesion.emit()"><span class="material-symbols-rounded">logout</span><span>Cerrar sesión</span></button>
+  </div>
+</aside>

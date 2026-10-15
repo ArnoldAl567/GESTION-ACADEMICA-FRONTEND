@@ -15,7 +15,7 @@ const app = express();
 const angularApp = new AngularNodeAppEngine();
 
 app.use('/api', (req, res) => {
-  const target = new URL(req.originalUrl, process.env['BACKEND_URL'] || 'http://127.0.0.1:8000');
+  const target = new URL(req.originalUrl, process.env['BACKEND_URL'] || 'http://127.0.0.1:8001');
   const proxy = (target.protocol === 'https:' ? httpsRequest : httpRequest)(target, {
     method: req.method,
     headers: { ...req.headers, host: target.host },

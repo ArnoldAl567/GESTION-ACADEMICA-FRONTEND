@@ -3,11 +3,18 @@
 <head>
   <meta charset="utf-8">
   <meta name="theme-color" content="#0f172a">
-  <meta name="description" content="EduGest Pro — Sistema de gestión académica integral">
-  <title>EduGest Pro | Gestión Académica</title>
+  <meta name="description" content="Institución Educativa N° 80404 — Sistema de gestión académica integral">
+  <title>Institución Educativa N° 80404 | Gestión Académica</title>
   <base href="/">
   <meta name="viewport" content="width=device-width, initial-scale=1">
-  <link rel="icon" type="image/x-icon" href="favicon.ico">
+  <script>
+    try {
+      const savedTheme = localStorage.getItem('ie-80404-tema');
+      const darkTheme = savedTheme === 'oscuro' || (!savedTheme && matchMedia('(prefers-color-scheme: dark)').matches);
+      document.documentElement.dataset.theme = darkTheme ? 'dark' : 'light';
+    } catch (_) {}
+  </script>
+  <link rel="icon" type="image/png" href="escudo-ie-80404.png">
 </head>
 <body>
   <app-root></app-root>

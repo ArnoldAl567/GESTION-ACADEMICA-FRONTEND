@@ -1,0 +1,36 @@
+<section class="page-heading"><div><h1>Libreta y seguimiento académico</h1><p>Promedios ponderados, competencias, asistencia y conclusiones</p></div><button class="secondary" (click)="imprimir.emit()"><span class="material-symbols-rounded">print</span>Imprimir vista</button></section>
+<section class="card grade-controls">
+  <app-selector-grado-seccion [aulas]="aulas" [aulaId]="aulaId" [deshabilitado]="ocupado" (aulaIdChange)="aulaIdChange.emit($event || 0)" (cambio)="recargar.emit()" />
+  <label>Periodo<select [ngModel]="periodo" (ngModelChange)="periodoChange.emit($event);recargar.emit()">@for(item of periodos;track item.id){<option [ngValue]="item.number">{{ item.name }} · {{ item.status }}</option>}</select></label>
+</section>
+@if(periodoCerrado){<div class="period-closed-notice" role="status"><span class="material-symbols-rounded">verified</span><div><strong>Periodo cerrado</strong><small>Las libretas están disponibles para consulta y descarga; las notas y observaciones ya no pueden modificarse.</small></div></div>}
+<section class="card table-scroll action-table"><table class="responsive-table"><thead><tr><th>Estudiante</th><th>Resultado</th><th>Cursos</th><th>Asistencia</th><th>Conclusión y conducta</th><th>Acciones</th></tr></thead><tbody>
+  @for(item of libretas;track item.enrollment_id){<tr>
+    <td data-label="Estudiante"><span class="person-cell"><span class="avatar small-avatar" [style.background]="item.student.color">{{ iniciales(item.student.name) }}</span><span><b>{{ item.student.name }}</b><small>DNI {{ item.student.dni }}</small></span></span></td>
+    <td data-label="Resultado"><span class="stack"><strong [class.green-text]="(item.average || 0)>=11">{{ item.average ?? '—' }}</strong><small class="achievement-pill">{{ item.achievement_level || 'Sin nivel' }} · {{ item.achievement_label || 'Pendiente' }}</small></span></td>
+    <td data-label="Cursos"><span class="stack">@for(course of item.course_averages.slice(0,3);track course.course_id){<small><b>{{ course.course }}:</b> {{ course.average ?? '—' }} ({{ course.achievement_level || '—' }}) · {{ course.weight_evaluated }}%</small>}@empty{<small>Sin resultados</small>}@if(item.course_averages.length>3){<small>+ {{ item.course_averages.length-3 }} cursos</small>}</span></td>
+    <td data-label="Asistencia"><span class="stack"><b>{{ item.attendance===null?'Sin registros':item.attendance+'%' }}</b><small>P {{ item.attendance_detail.present }} · T {{ item.attendance_detail.late }} · F {{ item.attendance_detail.absent }} · J {{ item.attendance_detail.justified }}</small></span></td>
+    <td data-label="Conclusión y conducta"><span class="stack"><small><b>Conclusión:</b> {{ item.descriptive_conclusion }}</small><small><b>Conducta:</b> {{ item.conduct }}</small></span></td>
+    <td data-label="Acciones"><div class="entity-actions"><button class="entity-action view-action" (click)="descargar.emit(item)"><span class="material-symbols-rounded">picture_as_pdf</span><span>Libreta PDF</span></button>@if(personal){<button class="entity-action edit-action" [disabled]="periodoCerrado" (click)="observar.emit(item)"><span class="material-symbols-rounded">add_comment</span><span>Observación</span></button>}</div></td>
+  </tr>}
+  @empty{<tr class="empty-row"><td colspan="6"><app-estado-vacio icono="monitoring" titulo="Sin información de seguimiento" [mensaje]="!personal&&!periodoCerrado?'La libreta estará disponible cuando el periodo esté cerrado.':'No hay matrículas activas para el grado, sección y periodo seleccionados.'" /></td></tr>}
+</tbody></table></section>
+@if (!personal && libretas.length) {
+  <section class="card family-evaluations" aria-label="Resultados de evaluaciones">
+    <h2>Resultados de evaluaciones</h2>
+    <p class="muted">Solo se muestran evaluaciones calificadas de periodos cerrados.</p>
+    @for (item of libretas; track item.enrollment_id) {
+      <details>
+        <summary>{{ item.student.name }} <span>{{ item.evaluation_scores.length }} {{ item.evaluation_scores.length===1?'evaluación':'evaluaciones' }}</span></summary>
+        @for (resultado of item.evaluation_scores; track resultado.id) {
+          @if (resultado.score !== null) {
+            <div class="family-evaluation-row">
+              <span><strong>{{ resultado.evaluation?.title || 'Evaluación' }}</strong><small>{{ resultado.evaluation?.course?.name || 'Curso' }} · {{ resultado.evaluation?.competency?.name || 'Competencia' }}</small></span>
+              <b>{{ resultado.score }} / {{ resultado.evaluation?.max_score || 20 }} · {{ resultado.achievement_level || '—' }}</b>
+            </div>
+          }
+        } @empty {<p class="muted">Aún no hay resultados publicados en este periodo.</p>}
+      </details>
+    }
+  </section>
+}

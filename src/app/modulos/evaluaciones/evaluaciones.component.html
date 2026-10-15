@@ -1,0 +1,22 @@
+<section class="page-heading">
+  <div><h1>Evaluaciones y calificaciones</h1><p>Instrumentos, competencias, pesos y niveles de logro</p></div>
+  @if(personal){<button class="primary" [disabled]="periodoCerrado" (click)="crear.emit()"><span class="material-symbols-rounded">add</span>Nueva evaluación</button>}
+</section>
+<section class="card grade-controls">
+  <app-selector-grado-seccion [aulas]="aulas" [aulaId]="aulaId" [deshabilitado]="ocupado" (aulaIdChange)="aulaIdChange.emit($event || 0)" (cambio)="recargar.emit()" />
+  <label>Periodo<select [ngModel]="periodo" (ngModelChange)="periodoChange.emit($event);recargar.emit()">@for(item of periodos;track item.id){<option [ngValue]="item.number">{{ item.name }} · {{ item.status }}</option>}</select></label>
+</section>
+@if(periodoCerrado){<div class="period-closed-notice" role="status"><span class="material-symbols-rounded">lock</span><div><strong>Periodo cerrado</strong><small>Las evaluaciones, notas y observaciones quedan en modo de consulta.</small></div></div>}
+<section class="card table-scroll action-table">
+  <table class="responsive-table"><thead><tr><th>Evaluación</th><th>Curso y competencia</th><th>Fecha</th><th>Tipo</th><th>Peso</th><th>Estado</th><th>Acciones</th></tr></thead><tbody>
+    @for(item of evaluaciones;track item.id){<tr>
+      <td data-label="Evaluación"><strong>{{ item.title }}</strong></td>
+      <td data-label="Curso y competencia"><span class="stack"><b>{{ item.course.name }}</b><small>{{ item.competency?.name || 'Sin competencia vinculada' }}</small></span></td>
+      <td data-label="Fecha">{{ item.evaluation_date | date:'dd/MM/yyyy' }}</td><td data-label="Tipo">{{ item.type }}</td>
+      <td data-label="Peso"><span class="stack"><b>{{ item.weight }}%</b><small [class.red-text]="pesoCurso(item)>100">Curso: {{ pesoCurso(item) }} / 100%</small></span></td>
+      <td data-label="Estado"><span class="status-dot" [class.success]="item.status==='Calificada'">{{ item.status }}</span></td>
+      <td data-label="Acciones"><div class="entity-actions">@if(personal){<button class="entity-action view-action" [disabled]="periodoCerrado" (click)="calificar.emit(item)"><span class="material-symbols-rounded">edit_note</span><span>Registrar notas</span></button><button class="entity-action edit-action" [disabled]="periodoCerrado" (click)="editar.emit(item)"><span class="material-symbols-rounded">edit</span><span>Editar</span></button>}@if(administrador){<button class="entity-action delete-action" [disabled]="periodoCerrado" (click)="eliminar.emit(item)"><span class="material-symbols-rounded">delete</span><span>Eliminar</span></button>}@if(!personal){<span class="muted">Solo lectura</span>}</div></td>
+    </tr>}
+    @empty{<tr class="empty-row"><td colspan="7"><app-estado-vacio icono="quiz" titulo="No hay evaluaciones" [mensaje]="!personal?'Los resultados se mostrarán cuando el periodo esté cerrado.':(periodoCerrado?'El periodo está cerrado y no contiene evaluaciones.':'Selecciona otra aula o periodo, o crea una nueva evaluación.')" [accion]="personal&&!periodoCerrado?'Nueva evaluación':''" (activar)="crear.emit()" /></td></tr>}
+  </tbody></table>
+</section>

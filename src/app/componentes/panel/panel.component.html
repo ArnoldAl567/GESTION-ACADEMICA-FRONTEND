@@ -1,0 +1,40 @@
+<section class="page-heading">
+  <div>
+    <h1>Buenos días, {{ rol }}</h1>
+    <p>Aquí está el resumen académico del día — {{ fecha | date:'dd/MM/yyyy' }}</p>
+  </div>
+  <button class="secondary" (click)="actualizar.emit()" [disabled]="cargando">
+    <span class="material-symbols-rounded">refresh</span>Actualizar
+  </button>
+</section>
+
+<section class="stats-grid">
+  @for (indicador of indicadores; track indicador.label) {
+    <article class="stat-card">
+      <div><span class="stat-label">{{ indicador.label }}</span><strong>{{ indicador.value }}</strong><small>{{ indicador.detail }}</small></div>
+      <span class="stat-icon" [class]="indicador.tone"><i class="material-symbols-rounded">{{ indicador.icon }}</i></span>
+    </article>
+  }
+</section>
+
+<section class="dashboard-grid animate-page-in">
+  <article class="card attendance-chart">
+    <div class="card-head"><div><h3>Asistencia Semanal</h3><p>% de presencia por día registrado</p></div><button class="link-button" (click)="navegar.emit('attendance')">Ver registro</button></div>
+    @if (resumen.weekly.length) {
+      <svg class="area-chart" viewBox="0 0 1000 270" role="img" aria-label="Asistencia registrada">
+        <defs><linearGradient id="attendanceFill" x1="0" y1="0" x2="0" y2="1"><stop offset="0%" stop-color="#2563eb" stop-opacity=".12"/><stop offset="100%" stop-color="#2563eb" stop-opacity="0"/></linearGradient></defs>
+        @for (y of [30,80,130,180,230]; track y) {<line x1="35" [attr.y1]="y" x2="965" [attr.y2]="y" stroke="#e2e8f0" stroke-dasharray="3 4"/><text x="5" [attr.y]="y+4" fill="#94a3b8" font-size="12">{{ (230-y)/2 }}</text>}
+        <polygon [attr.points]="'35,230 '+puntosSemanales()+' 965,230'" fill="url(#attendanceFill)"/>
+        <polyline [attr.points]="puntosSemanales()" fill="none" stroke="#2563eb" stroke-width="2.5"/>
+        <polyline [attr.points]="puntosSemanales(true)" fill="none" stroke="#ef4444" stroke-width="2"/>
+        @for (registro of resumen.weekly; track registro.date) {<text [attr.x]="35+$index*930/(resumen.weekly.length-1 || 1)" y="258" text-anchor="middle" font-size="12" fill="#94a3b8">{{ registro.date | date:'dd/MM' }}</text>}
+      </svg>
+    } @else {<p class="empty-state">Aún no hay asistencia registrada para este año.</p>}
+  </article>
+
+  <article class="card distribution"><div class="card-head"><div><h3>Distribución por Grado</h3><p>Total: {{ resumen.enrollments }} matrículas activas</p></div></div><div class="donut-chart" [style.background]="graficoCircular"></div><div class="grade-legend">@for (grado of resumen.distribution; track grado.grade) {<div><span><i [style.background]="colores[$index]"></i>{{ grado.grade }}° Grado</span><strong>{{ grado.total }}</strong></div>}</div></article>
+  <article class="card performance"><div class="card-head"><div><h3>Rendimiento por Grado</h3><p>Promedio de notas — {{ periodo }} · {{ anio }}</p></div></div><div class="live-bars">@for (grado of resumen.performance; track grado.grade) {<div><span>{{ grado.average }}</span><i [style.height.%]="grado.average*5" [style.background]="colores[$index]"></i><small>{{ grado.grade }}°</small></div>}</div></article>
+  <article class="card enrollment-trend"><div class="card-head"><div><h3>Tendencia de Matrículas</h3><p>Matrículas registradas por mes · {{ anio }}</p></div></div><div class="live-trend">@for (registro of resumen.trend; track registro.month) {<div><span>{{ registro.month }}</span><progress [value]="registro.total" [max]="resumen.students || 1"></progress><strong>{{ registro.total }}</strong></div>} @empty {<p class="empty-state">No hay matrículas para este año.</p>}</div></article>
+  <article class="card alerts-card"><div class="card-head"><h3>Alertas Académicas</h3><span class="tag red">{{ resumen.alerts.length }} activas</span></div>@for (alerta of resumen.alerts; track alerta.student) {<div class="live-alert"><span class="material-symbols-rounded">warning</span><div><strong>{{ alerta.student }}</strong><small>{{ alerta.classroom }} · Promedio: {{ alerta.average ?? '—' }} · Asistencia: {{ alerta.attendance ?? '—' }}%</small></div></div>} @empty {<p class="empty-state">No hay alertas académicas.</p>}</article>
+  <article class="card activity-card"><div class="card-head"><h3>Actividad Reciente</h3></div>@for (actividad of resumen.activity; track $index) {<div class="live-activity"><span class="material-symbols-rounded">assignment</span><div>{{ actividad.description }}<small>{{ actividad.date | date:'dd/MM/yyyy HH:mm' }}</small></div></div>}<h4>Accesos Rápidos</h4><div class="quick-actions">@if (esAdministrador) {<button (click)="nuevaMatricula.emit()">Nueva matrícula</button>}<button (click)="navegar.emit('attendance')">Asistencia</button><button (click)="navegar.emit('grades')">Calificaciones</button></div></article>
+</section>

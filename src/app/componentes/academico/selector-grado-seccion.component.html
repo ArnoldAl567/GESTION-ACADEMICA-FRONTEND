@@ -1,0 +1,29 @@
+<div class="selector-grado-seccion">
+  <label>
+    <span>Grado</span>
+    <select
+      aria-label="Seleccionar grado"
+      [disabled]="deshabilitado"
+      [ngModel]="grado"
+      (ngModelChange)="cambiarGrado($event)">
+      @if (permitirTodas) {<option [ngValue]="0">Todos los grados</option>}
+      @for (grado of grados; track grado) {
+        <option [ngValue]="grado">{{ grado }}° grado</option>
+      }
+    </select>
+  </label>
+
+  <label>
+    <span>Sección</span>
+    <select
+      aria-label="Seleccionar sección"
+      [disabled]="deshabilitado || grado === 0"
+      [ngModel]="aulaId"
+      (ngModelChange)="cambiarSeccion($event)">
+      @if (permitirTodasLasSecciones || (permitirTodas && grado === 0)) {<option [ngValue]="null">Todas las secciones</option>}
+      @for (aula of secciones; track aula.id) {
+        <option [ngValue]="aula.id">Sección {{ aula.section }}</option>
+      }
+    </select>
+  </label>
+</div>

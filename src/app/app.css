@@ -5,3 +5,19 @@
 .admin-startup p { margin: 0; color: #6b7c99; }
 .startup-spinner { width: 30px; height: 30px; margin-top: 8px; border: 3px solid #dbe7ff; border-top-color: #246bfd; border-radius: 50%; animation: startup-spin .75s linear infinite; }
 @keyframes startup-spin { to { transform: rotate(360deg); } }
+
+.subsection-heading{display:flex;align-items:center;justify-content:space-between;gap:1rem;margin:1.5rem 0 .75rem}.subsection-heading h2{margin:0;font-size:1.05rem}.subsection-heading p{margin:.2rem 0 0;color:var(--muted);font-size:.82rem}
+.event-grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(280px,1fr));gap:1rem}.event-card{padding:1.2rem;display:grid;gap:.65rem}.event-card>div,.event-card footer{display:flex;align-items:center;justify-content:space-between;gap:.5rem}.event-card h3,.event-card p{margin:0}.event-card p{color:var(--muted);min-height:2.5rem}.event-card time{font-weight:700}.event-card small{color:var(--muted)}
+.detail-section{padding:0 1.5rem 1.5rem}.document-row{display:flex;align-items:center;gap:.75rem;padding:.75rem 0;border-top:1px solid var(--border)}.document-row>span:first-child{display:grid;flex:1}.document-row small{color:var(--muted)}
+.score-editor{width:min(760px,calc(100vw - 2rem))}.score-editor>p{color:var(--muted)}.score-editor table{width:100%}
+.family-evaluations { margin-top: 16px; padding: 20px; }
+.family-evaluations h2 { margin: 0 0 4px; font-size: 1.05rem; }
+.family-evaluations details { border-top: 1px solid var(--border, #e2e8f0); padding: 12px 0; }
+.family-evaluations details:first-of-type { margin-top: 12px; }
+.family-evaluations summary { cursor: pointer; font-weight: 600; }
+.family-evaluations summary span { float: right; color: var(--muted, #64748b); font-weight: 400; }
+.family-evaluation-row { display: flex; justify-content: space-between; gap: 16px; padding: 10px 4px; border-top: 1px solid var(--border, #e2e8f0); }
+.family-evaluation-row:first-of-type { margin-top: 12px; }
+.family-evaluation-row span { display: grid; gap: 3px; }
+.family-evaluation-row small { color: var(--muted, #64748b); }
+@media (max-width: 640px) { .family-evaluation-row { flex-direction: column; gap: 4px; } }
