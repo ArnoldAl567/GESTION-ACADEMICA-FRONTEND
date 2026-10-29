@@ -8,6 +8,8 @@ import { Routes } from '@angular/router';
 export class ModuleRoute {}
 
 export const routes: Routes = [
+  { path: 'planificacion-tareas', component: ModuleRoute, title: 'Planificación y tareas | Institución Educativa N° 80404' },
+  { path: 'conducta-incidencias', component: ModuleRoute, title: 'Conducta e incidencias | Institución Educativa N° 80404' },
   { path: '', pathMatch: 'full', redirectTo: 'dashboard' },
   { path: 'dashboard', component: ModuleRoute, title: 'Dashboard | Institución Educativa N° 80404' },
   { path: 'alumnos', component: ModuleRoute, title: 'Alumnas | Institución Educativa N° 80404' },

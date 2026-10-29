@@ -1,7 +1,7 @@
 export type Rol = string;
 export type EstadoAsistencia = 'P' | 'F' | 'T' | 'J';
 export type ValorFormulario = string | number | boolean | null;
-export type ModuloId = 'dashboard' | 'students' | 'guardians' | 'roles' | 'teachers' | 'personnel' | 'enrollment' | 'classrooms' | 'academicCalendar' | 'attendance' | 'courses' | 'teacherAssignments' | 'schedule' | 'events' | 'grades' | 'evaluations' | 'tracking' | 'communications' | 'reports';
+export type ModuloId = 'dashboard' | 'students' | 'guardians' | 'roles' | 'teachers' | 'personnel' | 'enrollment' | 'classrooms' | 'academicCalendar' | 'attendance' | 'courses' | 'teacherAssignments' | 'schedule' | 'events' | 'grades' | 'evaluations' | 'tracking' | 'communications' | 'reports' | 'planning' | 'conduct';
 export type PermisosModulo = Record<ModuloId, string[]>;
 export type Recurso = 'students' | 'guardians' | 'roles' | 'teachers' | 'courses' | 'enrollments' | 'schedules' | 'classrooms' | 'academic-years' | 'academic-periods' | 'communications' | 'users' | 'administrative-staff' | 'competencies' | 'teacher-assignments' | 'academic-events' | 'evaluations' | 'student-documents' | 'student-observations';
 

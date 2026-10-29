@@ -52,6 +52,7 @@ export const GRUPOS_NAVEGACION: GrupoNavegacion[] = [
       { id: 'schedule', label: 'Horarios', icon: 'schedule' },
       { id: 'teacherAssignments', label: 'Asignación docente', icon: 'co_present' },
       { id: 'events', label: 'Calendario y eventos', icon: 'event' },
+      { id: 'planning', label: 'Planificación y tareas', icon: 'assignment_add' },
     ] }],
   },
   {
@@ -59,6 +60,7 @@ export const GRUPOS_NAVEGACION: GrupoNavegacion[] = [
       { id: 'evaluations', label: 'Evaluaciones', icon: 'quiz' },
       { id: 'grades', label: 'Notas por periodo', icon: 'grading' },
       { id: 'tracking', label: 'Libreta y seguimiento', icon: 'monitoring' },
+      { id: 'conduct', label: 'Conducta e incidencias', icon: 'diversity_1' },
     ] }],
   },
   {
@@ -96,6 +98,8 @@ export const ELEMENTOS_NAVEGACION: ElementoNavegacion[] = [
 ];
 
 export const RUTAS_MODULOS: Record<ModuloId, string> = {
+  planning: 'planificacion-tareas',
+  conduct: 'conducta-incidencias',
   dashboard: 'dashboard',
   students: 'alumnos',
   guardians: 'apoderados',

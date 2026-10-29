@@ -8,8 +8,8 @@ import { PanelComponent } from './componentes/panel/panel.component';
 import { BarraLateralComponent } from './componentes/navegacion/barra-lateral.component';
 import { CabeceraComponent } from './componentes/navegacion/cabecera.component';
 import { SelectorGradoSeccionComponent } from './componentes/academico/selector-grado-seccion.component';
-import { COLORES_GRAFICOS, DIAS_SEMANA, ELEMENTOS_NAVEGACION, GRUPOS_NAVEGACION, GRUPOS_NAVEGACION_FAMILIA, GrupoNavegacion, INFORMACION_ROLES, INICIO_FAMILIA, INICIO_NAVEGACION, RUTAS_MODULOS, TIPOS_REPORTE } from './configuracion/aplicacion.configuracion';
-import { AcademicEvent, AcademicPeriod, AcademicYear, AdministrativeStaff, AttendanceState, Bootstrap, Classroom, Communication, Competency, Course, Enrollment, Evaluation, Field, FormValue, Guardian, ModuleId, Page, PermisosModulo, Report, ReportCard, Resource, Role, Schedule, Settings, Student, StudentDocument, StudentObservation, Summary, SystemRole, Teacher, TeacherAssignment, User } from './modelos/academicos.modelos';
+import { COLORES_GRAFICOS, DIAS_SEMANA, ELEMENTOS_NAVEGACION, GRUPOS_NAVEGACION, GRUPOS_NAVEGACION_FAMILIA, GrupoNavegacion, INFORMACION_ROLES, INICIO_FAMILIA, INICIO_NAVEGACION, RUTAS_MODULOS } from './configuracion/aplicacion.configuracion';
+import { AcademicEvent, AcademicPeriod, AcademicYear, AdministrativeStaff, AttendanceState, Bootstrap, Classroom, Communication, Competency, Course, Enrollment, Evaluation, Field, FormValue, Guardian, ModuleId, Page, PermisosModulo, ReportCard, Resource, Role, Schedule, Settings, Student, StudentDocument, StudentObservation, Summary, SystemRole, Teacher, TeacherAssignment, User } from './modelos/academicos.modelos';
 import { ApiAcademicaServicio, ErrorApi } from './servicios/api-academica.servicio';
 import { TemaServicio } from './servicios/tema.servicio';
 import { EstudiantesServicio } from './servicios/dominios/estudiantes.servicio';
@@ -22,10 +22,13 @@ import { MatriculasComponent } from './modulos/matriculas/matriculas.component';
 import { AsistenciaComponent } from './modulos/asistencia/asistencia.component';
 import { EvaluacionesComponent } from './modulos/evaluaciones/evaluaciones.component';
 import { SeguimientoComponent } from './modulos/seguimiento/seguimiento.component';
+import { ReportesComponent } from './modulos/reportes/reportes.component';
+import { GestionDocenteComponent } from './modulos/gestion-docente/gestion-docente.component';
+import { NivelesPrimariaComponent } from './modulos/evaluaciones/niveles-primaria.component';
 import { NotificacionesComponent } from './componentes/interfaz/notificaciones.component';
 import { FiltroActivo, FiltrosActivosComponent } from './componentes/interfaz/filtros-activos.component';
 
-@Component({ selector: 'app-root', imports: [CommonModule, FormsModule, RouterOutlet, BarraLateralComponent, CabeceraComponent, PanelComponent, SelectorGradoSeccionComponent, EstudiantesComponent, MatriculasComponent, AsistenciaComponent, EvaluacionesComponent, SeguimientoComponent, NotificacionesComponent, FiltrosActivosComponent], templateUrl: './app.html', styleUrl: './app.css' })
+@Component({ selector: 'app-root', imports: [CommonModule, FormsModule, RouterOutlet, BarraLateralComponent, CabeceraComponent, PanelComponent, SelectorGradoSeccionComponent, EstudiantesComponent, MatriculasComponent, AsistenciaComponent, EvaluacionesComponent, SeguimientoComponent, ReportesComponent, GestionDocenteComponent, NivelesPrimariaComponent, NotificacionesComponent, FiltrosActivosComponent], templateUrl: './app.html', styleUrl: './app.css' })
 export class App {
   private readonly api = inject(ApiAcademicaServicio);
   private readonly tema = inject(TemaServicio);
@@ -96,7 +99,6 @@ export class App {
   guardianContactOpen = false;
   guardianContactDraft = {phone:'',email:'',address:''};
   private guardianContactSnapshot = '';
-  guardianAccountIds: number[] = [];
   teachers: Teacher[] = [];
   administrativeStaff: AdministrativeStaff[] = [];
   courses: Course[] = [];
@@ -130,8 +132,6 @@ export class App {
   scores: Record<number, number | null> = {};
   originalScores: Record<number, number | null> = {};
   date = new Date().toLocaleDateString('en-CA');
-  reportType = 'academic';
-  report: Report | null = null;
   summary: Summary = {students:0,teachers:0,enrollments:0,pending:0,cancelled:0,attendance:0,average:0,unread:0,distribution:[],performance:[],weekly:[],trend:[],alerts:[],activity:[]};
   modal: Resource | null = null;
   editingId: number | null = null;
@@ -161,7 +161,6 @@ export class App {
     'academic-events':'events',evaluations:'evaluations','student-documents':'students',
     'student-observations':'tracking',
   };
-  readonly reportTypes = TIPOS_REPORTE;
 
   constructor() {
     this.router.events.pipe(
@@ -240,13 +239,13 @@ export class App {
     const text=(key:string,label:string,required=true,type='text'):Field=>({key,label,required,type});
     const select=(key:string,label:string,options:{value:FormValue;label:string}[],required=true):Field=>({key,label,type:'select',options,required});
     const options=(values:string[])=>values.map(value=>({value,label:value}));
+    const estadoPersona=(valores=['Activo','Inactivo']):Field[]=>this.editingId?[select('status','Estado',options(valores))]:[];
     const userOptions=(role:Role)=>[{value:null,label:'Sin cuenta vinculada'},...this.users.filter(u=>this.userScope(u)===role&&u.active).map(u=>({value:u.id,label:u.name+' — '+u.email}))];
-    const guardianUserOptions=[{value:null,label:'Selecciona una cuenta de acceso'},...this.users.filter(u=>this.userScope(u)==='padre'&&(u.active||u.id===Number(this.draft['user_id']))&&(!this.guardianAccountIds.includes(u.id)||u.id===Number(this.draft['user_id']))).map(u=>({value:u.id,label:u.name+' — '+u.email}))];
     switch(this.modal) {
-      case 'students': return [text('name','Nombres y apellidos'),text('dni','DNI'),text('birth_date','Fecha de nacimiento',false,'date'),select('guardian_id','Apoderado',this.guardians.map(item=>({value:item.id,label:item.name+' · '+item.phone+(item.status==='Activo'?'':' · Inactivo')}))),select('status','Estado',options(['Activo','Inactivo','Trasladado']))];
-      case 'guardians': return [text('name','Nombres y apellidos'),text('dni','DNI'),text('phone','Teléfono'),text('email','Correo',true,'email'),text('address','Dirección',false),select('user_id','Cuenta de acceso',guardianUserOptions),select('status','Estado',options(['Activo','Inactivo']))];
+      case 'students': return [text('name','Nombres y apellidos'),text('dni','DNI'),text('birth_date','Fecha de nacimiento',false,'date'),select('guardian_id','Apoderado',this.guardians.map(item=>({value:item.id,label:item.name+' · '+item.phone+(item.status==='Activo'?'':' · Inactivo')}))),...estadoPersona(['Activo','Inactivo','Trasladado'])];
+      case 'guardians': return [text('name','Nombres y apellidos'),text('dni','DNI'),text('phone','Teléfono'),text('email','Correo / usuario de acceso',true,'email'),text('address','Dirección',false),...(!this.draft['user_id']?[text('password','Contraseña de acceso (mínimo 8 caracteres)',true,'password')]:[]),...(this.editingId?[select('status','Estado',options(['Activo','Inactivo']))]:[])];
       case 'roles': return [text('code','Código del rol'),text('name','Nombre visible'),text('description','Descripción',true,'textarea'),select('scope','Nivel de acceso',[{value:'admin',label:'Administrador — acceso completo'},{value:'docente',label:'Docente — gestión académica asignada'},{value:'padre',label:'Apoderado — consulta familiar'}]),text('icon','Icono de Material Symbols'),select('active','Estado',[{value:true,label:'Activo'},{value:false,label:'Inactivo'}])];
-      case 'teachers': return [text('name','Nombres y apellidos'),text('dni','DNI'),text('email','Correo institucional',true,'email'),text('phone','Teléfono',false),select('user_id','Cuenta docente',userOptions('docente'),false),select('status','Estado',options(['Activo','Inactivo']))];
+      case 'teachers': return [text('name','Nombres y apellidos'),text('dni','DNI'),text('email','Correo institucional',true,'email'),text('phone','Teléfono',false),select('user_id','Cuenta docente',userOptions('docente'),false),...estadoPersona()];
       case 'courses': return [text('name','Nombre del curso'),text('category','Área académica'),{...text('hours','Horas semanales',true,'number'),min:1,max:40},text('description','Descripción',false,'textarea'),text('color','Color',true,'color')];
       case 'enrollments': return [select('student_id','Estudiante',this.enrollmentCandidates.map(s=>({value:s.id,label:s.name}))),{...text('year','Año académico',true,'number'),min:2020,max:2100},text('enrolled_at','Fecha de matrícula',true,'date'),select('status','Estado',options(['Activo','Pendiente','Cancelado']))];
       case 'schedules': return [select('course_id','Curso',this.courses.filter(c=>c.classrooms.some(r=>r.id===Number(this.draft['classroom_id']))).map(c=>({value:c.id,label:c.name}))),select('day','Día',this.days.map((label,i)=>({value:i+1,label}))),text('starts_at','Hora de inicio',true,'time'),text('ends_at','Hora de fin',true,'time')];
@@ -255,10 +254,10 @@ export class App {
       case 'academic-periods': {const year=this.academicYears.find(item=>item.id===Number(this.draft['academic_year_id']));const max=year?.period_type==='Trimestral'?3:4;const label=max===3?'Trimestre':'Bimestre';return [select('academic_year_id','Año académico',this.academicYears.map(item=>({value:item.id,label:String(item.year)+' · '+item.period_type}))),select('number','Número de periodo',Array.from({length:max},(_,index)=>({value:index+1,label:label+' '+(index+1)}))),text('name','Nombre del periodo'),text('starts_on','Fecha de inicio',true,'date'),text('ends_on','Fecha de término',true,'date'),select('status','Estado',options(['Planificado','Activo','Cerrado']))];}
       case 'communications': return [select('type','Tipo',options(['Comunicado','Circular','Urgente'])),text('subject','Asunto'),select('audience','Destinatarios',this.admin?[{value:'all',label:'Toda la comunidad'},{value:'docente',label:'Docentes'},{value:'padre',label:'Apoderados'},{value:'admin',label:'Administración'}]:[{value:'padre',label:'Apoderados de la sección'},{value:'all',label:'Comunidad de la sección'}]),text('body','Mensaje',true,'textarea')];
       case 'users': return [text('name','Nombre completo'),text('email','Correo',true,'email'),select('role','Perfil',this.systemRoles.filter(role=>role.active).map(role=>({value:role.code,label:role.name}))),text('password','Contraseña inicial (mínimo 10 caracteres)',true,'password')];
-      case 'administrative-staff': return [text('name','Nombres y apellidos'),text('dni','DNI'),text('email','Correo institucional',true,'email'),text('phone','Teléfono',false),select('position','Cargo',options(['Director','Coordinador','Auxiliar','Secretaría','Administrativo'])),select('user_id','Cuenta de acceso',userOptions('admin'),false),select('status','Estado',options(['Activo','Inactivo']))];
+      case 'administrative-staff': return [text('name','Nombres y apellidos'),text('dni','DNI'),text('email','Correo institucional',true,'email'),text('phone','Teléfono',false),select('position','Cargo',options(['Director','Coordinador','Auxiliar','Secretaría','Administrativo'])),select('user_id','Cuenta de acceso',userOptions('admin'),false),...estadoPersona()];
       case 'competencies': return [select('course_id','Curso',this.courses.map(c=>({value:c.id,label:c.name}))),select('grade','Grado',[{value:null,label:'Todos los grados'},...[1,2,3,4,5,6].map(value=>({value,label:value+'° grado'}))],false),text('name','Competencia'),text('capacity','Capacidad',true,'textarea'),text('performance','Desempeño',true,'textarea'),text('evaluation_criterion','Criterio de evaluación',true,'textarea'),select('status','Estado',options(['Activo','Inactivo']))];
       case 'teacher-assignments': return [select('teacher_id','Docente',this.teachers.filter(t=>t.status==='Activo').map(t=>({value:t.id,label:t.name}))),select('status','Estado',options(['Activo','Inactivo']))];
-      case 'academic-events': return [select('academic_year_id','Año académico',this.academicYears.map(a=>({value:a.id,label:String(a.year)}))),select('classroom_id','Alcance',[{value:null,label:'Toda la institución'},...this.classrooms.map(r=>({value:r.id,label:this.roomLabel(r)}))],false),text('title','Título'),select('type','Tipo',options(['Evaluación','Reunión','Feriado','Actividad escolar','Fecha importante'])),text('starts_at','Inicio',true,'datetime-local'),text('ends_at','Fin',false,'datetime-local'),text('description','Descripción',false,'textarea'),select('status','Estado',options(['Programado','Realizado','Cancelado']))];
+      case 'academic-events': return [text('title','Título'),select('type','Tipo',options(['Evaluación','Reunión','Feriado','Actividad escolar','Fecha importante'])),text('starts_at','Inicio',true,'datetime-local'),text('ends_at','Fin',false,'datetime-local'),text('description','Descripción',false,'textarea'),select('status','Estado',options(['Programado','Realizado','Cancelado']))];
       case 'evaluations': {const room=this.classrooms.find(item=>item.id===Number(this.draft['classroom_id']));const availableCourses=this.courses.filter(item=>item.classrooms.some(classroom=>classroom.id===room?.id));return [select('academic_period_id','Periodo',this.periods.map(p=>({value:p.id,label:p.name+' · '+p.status}))),select('classroom_id','Grado y sección',this.classrooms.map(r=>({value:r.id,label:this.roomLabel(r)}))),select('course_id','Curso',availableCourses.map(c=>({value:c.id,label:c.name}))),select('competency_id','Competencia evaluada',this.availableEvaluationCompetencies.map(item=>({value:item.id,label:item.name}))),text('title','Título'),select('type','Tipo',options(['Práctica','Examen','Proyecto','Tarea','Participación'])),text('evaluation_date','Fecha',true,'date'),{...text('max_score','Puntaje máximo',true,'number'),min:1,max:100},{...text('weight','Peso porcentual',true,'number'),min:0.01,max:100},select('status','Estado',options(['Programada','Aplicada','Calificada','Cancelada']))];}
       case 'student-documents': return [select('student_id','Estudiante',this.students.map(s=>({value:s.id,label:s.name}))),text('type','Tipo de documento'),text('document_number','Número / código',false),text('issued_on','Fecha de emisión',false,'date'),text('expires_on','Fecha de vencimiento',false,'date'),select('status','Estado',options(['Vigente','Pendiente','Vencido'])),text('notes','Notas',false,'textarea')];
       case 'student-observations': return [select('enrollment_id','Estudiante',this.reportCards.map(r=>({value:r.enrollment_id,label:r.student.name}))),select('academic_period_id','Periodo',this.periods.map(p=>({value:p.id,label:p.name}))),select('type','Tipo',options(['Académica','Conductual','Tutoría','Reconocimiento'])),text('observed_on','Fecha',true,'date'),text('observation','Observación',true,'textarea')];
@@ -418,7 +417,7 @@ export class App {
       case 'communications':
         this.messages=await this.api.listarTodos<Communication>('communications?q='+encodeURIComponent(this.query));
         this.messages.sort((a,b)=>b.id-a.id);this.selectedMessage=this.messages.find(m=>m.id===this.selectedMessage?.id)??this.visibleMessages[0]??null;break;
-      case 'reports':this.report=(await this.api.solicitar<{data:Report}>('reports?type='+this.reportType+'&year='+this.year+'&period='+this.period)).data;break;
+      case 'reports':break;
     }
   }
   private activateRoute(url:string):void {
@@ -473,11 +472,10 @@ export class App {
   async openModal(resource:Resource, record?:object):Promise<void> {
     if(!this.can(this.resourceModules[resource],record?'update':'create')) {this.error='No tienes permiso para esta acción.';return;}
     await this.run(async()=>{
-      if(this.admin&&(resource==='students'||resource==='guardians'||resource==='teachers'||resource==='users')) this.users=(await this.api.solicitar<{data:User[]}>('users')).data;
+      if(this.admin&&(resource==='students'||resource==='teachers'||resource==='users')) this.users=(await this.api.solicitar<{data:User[]}>('users')).data;
       if(resource==='users') this.systemRoles=await this.api.listarTodos<SystemRole>('roles');
       if(resource==='administrative-staff') this.users=(await this.api.solicitar<{data:User[]}>('users')).data;
       if(resource==='students') this.guardians=await this.api.listarTodos<Guardian>('guardians');
-      if(resource==='guardians') this.guardianAccountIds=(await this.api.listarTodos<Guardian>('guardians')).flatMap(item=>item.user_id?[item.user_id]:[]);
       if(resource==='evaluations') this.competencies=await this.api.listarTodos<Competency>('management/competencies');
       if(resource==='enrollments') {
         this.enrollmentCandidates=await this.matriculasServicio.candidatos(this.year);
@@ -620,8 +618,6 @@ export class App {
   archiveMessage():void {if(!this.selectedMessage)return;const id=this.selectedMessage.id;void this.run(async()=>{
     await this.api.solicitar('communications/'+id+'/receipt','PUT',{archived:!this.showArchived});await this.loadModule();this.selectedMessage=this.visibleMessages[0]??null;
   },'Comunicado actualizado.');}
-  chooseReport(type:string):void {this.reportType=type;void this.run(()=>this.loadModule());}
-  exportReport():void {void this.run(()=>this.api.descargar('reports/export?type='+this.reportType+'&year='+this.year+'&period='+this.period,'reporte-'+this.reportType+'-'+this.year+'.csv'));}
   print():void {window.print();}
   openSettings():void {void this.run(async()=>{
     if(this.admin){
@@ -663,6 +659,19 @@ export class App {
   modalClassroomTeacherName():string {return this.classrooms.find(r=>r.id===this.draftClassroomId)?.active_assignment?.teacher?.name??'Asigna primero una docente a esta aula';}
   unread(message:Communication):boolean {return !message.draft&&!message.readers[0]?.pivot.read_at;}
   scheduleFor(day:number):Schedule[] {return this.schedules.filter(s=>s.day===day).sort((a,b)=>a.starts_at.localeCompare(b.starts_at));}
+  get scheduleSlots():{start:string;end:string}[] {
+    const times=new Set(['07:30','08:15','09:00','09:45','10:00','10:45','11:30','12:15']);
+    for(const clase of this.schedules){times.add(clase.starts_at.slice(0,5));times.add(clase.ends_at.slice(0,5));}
+    const sorted=[...times].sort();
+    return sorted.slice(0,-1).map((start,index)=>({start,end:sorted[index+1]}));
+  }
+  private scheduleMinutes(time:string):number {const [h,m]=time.split(':').map(Number);return h*60+m;}
+  get scheduleGridRows():string {
+    return '52px '+this.scheduleSlots.map(slot=>slot.start==='09:45'?'54px':Math.max(50,(this.scheduleMinutes(slot.end)-this.scheduleMinutes(slot.start))*2.6)+'px').join(' ');
+  }
+  scheduleAt(day:number,start:string):Schedule|undefined {return this.schedules.find(s=>s.day===day&&s.starts_at.slice(0,5)===start);}
+  scheduleOccupied(day:number,start:string):boolean {return this.schedules.some(s=>s.day===day&&s.starts_at.slice(0,5)<=start&&s.ends_at.slice(0,5)>start);}
+  scheduleRowSpan(clase:Schedule):number {return this.scheduleSlots.filter(slot=>slot.start>=clase.starts_at.slice(0,5)&&slot.start<clase.ends_at.slice(0,5)).length;}
   gradeValue(e:Enrollment,courseId:number):number|null {return e.grades?.find(g=>g.course_id===courseId)?.score??null;}
   displayedGrade(e:Enrollment,courseId:number):number|null {return this.staff&&courseId===Number(this.selectedCourseId)?this.scores[e.id]??null:this.gradeValue(e,courseId);}
   averageValue(e:Enrollment):number|null {

@@ -1,0 +1,53 @@
+<section class="page-heading report-heading">
+  <div><h1>Reportes</h1><p>Consulta, filtra y descarga información académica del año {{ anio }}.</p></div>
+  <div class="heading-actions">
+    <button class="secondary" type="button" [disabled]="!reporte || cargando" (click)="imprimir()"><span class="material-symbols-rounded">print</span>Imprimir / PDF</button>
+    <button class="green-button" type="button" [disabled]="!reporte || cargando || exportando" (click)="exportar()"><span class="material-symbols-rounded">download</span>{{ exportando ? 'Exportando…' : 'Exportar CSV' }}</button>
+  </div>
+</section>
+
+<nav class="report-types" aria-label="Tipos de reporte">
+  @for (opcion of tipos; track opcion.id) {
+    <button type="button" [class.active]="tipo === opcion.id" [attr.aria-pressed]="tipo === opcion.id" (click)="seleccionarTipo(opcion.id)">
+      <span class="material-symbols-rounded">{{ opcion.icon }}</span>
+      <span><b>{{ opcion.label }}</b><small>{{ opcion.description }}</small></span>
+    </button>
+  }
+</nav>
+
+<form class="card report-controls" (ngSubmit)="aplicar()">
+  <app-selector-grado-seccion [aulas]="aulasDelAnio" [grado]="grado" [aulaId]="aulaId" [permitirTodas]="true" [permitirTodasLasSecciones]="true" (gradoChange)="cambiarGrado($event)" (aulaIdChange)="aulaId=$event" />
+  @if (tipo === 'academic' || tipo === 'attendance') {
+    <label><span>Periodo</span><select name="periodo" [(ngModel)]="periodo">@for (opcion of periodos; track opcion.id) {<option [ngValue]="opcion.number">{{ opcion.name }}</option>}</select></label>
+  }
+  <label class="report-search"><span>Buscar en el reporte</span><input name="busqueda" [(ngModel)]="busqueda" maxlength="120" placeholder="Nombre, DNI, curso…"></label>
+  <button class="primary" type="submit" [disabled]="cargando"><span class="material-symbols-rounded">search</span>Consultar</button>
+</form>
+
+<div class="report-filter-summary" aria-live="polite">
+  <span><span class="material-symbols-rounded">filter_alt</span>Año {{ anio }} · {{ etiquetaAula }} @if (tipo === 'academic' || tipo === 'attendance') { · {{ etiquetaPeriodo }} } @if (filtrosVigentes?.q) { · «{{ filtrosVigentes?.q }}» } @if (filtrosSinAplicar) { <em>Hay filtros sin aplicar</em> }</span>
+  @if (filtrosActivos) {<button type="button" class="link-button" (click)="limpiar()">Limpiar filtros</button>}
+</div>
+
+@if (fallo) {
+  <section class="card report-empty" role="alert"><span class="material-symbols-rounded">error_outline</span><h2>No se pudo cargar el reporte</h2><p>{{ fallo }}</p><button class="secondary" type="button" (click)="cargar()">Reintentar</button></section>
+} @else if (cargando && !reporte) {
+  <section class="card report-empty" aria-live="polite"><span class="material-symbols-rounded">progress_activity</span><p>Cargando reporte…</p></section>
+} @else if (reporte; as datos) {
+  <div class="report-print-title"><h1>Institución Educativa N° 80404</h1><h2>{{ etiquetaTipo }}</h2><p>Año {{ anio }} · {{ etiquetaAula }}@if (tipo === 'academic' || tipo === 'attendance') { · {{ etiquetaPeriodo }}}</p></div>
+  <section class="report-kpis" aria-label="Resumen del reporte">
+    @for (indicador of indicadores; track indicador.etiqueta) {
+      <article class="card"><strong>{{ indicador.valor }}</strong><span>{{ indicador.etiqueta }}</span><small>{{ indicador.detalle }}</small></article>
+    }
+  </section>
+  <section class="card report-results animate-page-in">
+    <header><div><h2>{{ etiquetaTipo }}</h2><p>{{ datos.rows.length }} {{ datos.rows.length === 1 ? 'registro encontrado' : 'registros encontrados' }}</p></div>@if (cargando) {<span class="report-updating">Actualizando…</span>}</header>
+    @if (datos.rows.length) {
+      <div class="table-scroll report-table"><table><thead><tr>@for (columna of datos.columns; track columna) {<th scope="col">{{ columna }}</th>}</tr></thead><tbody>
+        @for (fila of datos.rows; track $index) {<tr>@for (celda of fila; track $index) {<td [attr.data-label]="datos.columns[$index]">{{ celda === null || celda === '' ? '—' : celda }}</td>}</tr>}
+      </tbody></table></div>
+    } @else {
+      <div class="report-empty"><span class="material-symbols-rounded">search_off</span><h3>Sin resultados</h3><p>No hay registros para los filtros seleccionados.</p>@if (filtrosActivos) {<button class="secondary" type="button" (click)="limpiar()">Ver todos los registros</button>}</div>
+    }
+  </section>
+}
